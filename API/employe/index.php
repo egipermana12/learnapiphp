@@ -14,20 +14,27 @@ class EmployeeView{
         $this->db = $db;
     }
 
+
     private function getFilterLikes(){
+
+        $arrayParams = $_GET;
+        $arrayAcc = array("name" => "", "email" =>"");
+        $res = array_intersect_key($arrayParams, $arrayAcc);
+
         $likes = array();
-        if(isset($_GET['name'])){
-            $likes['name'] = $this->employess->setName($_GET['name']);
-        }
-        if(isset($_GET['email'])){
-            $likes['email'] = $this->employess->setEmail($_GET['email']);
+
+        if(count($res) > 0){
+            foreach($res as $key => $val){
+                $method = 'set' . ucfirst($key);
+                $likes[$key] = $this->employess->$method($val);
+            }
         }
         return $likes;
     }
 
     private function getFilterWhereIn(){
         $wheres = array();
-        if(isset($_GET['ids'])){
+        if(!empty($_GET['ids'])){
             $wheres['id'] = explode(",", $_GET['ids']);
         }
         return $wheres;
@@ -43,13 +50,14 @@ class EmployeeView{
         $wheresIn = $this->getFilterWhereIn();
         $likes = $this->getFilterLikes();
 
-        $datas = $this->employess->getEmployees($wheres, $wheresIn, $likes, $offset, $limit);
+        $datas = $this->employess->getEmployees('fetch',$wheres, $wheresIn, $likes, $offset, $limit);
+        $count = $this->employess->getEmployees('count',$wheres, $wheresIn, $likes, $offset, $limit);
 
         if(count($datas) > 0){
             http_response_code(200);
             $data = [
                 "message" => "Data ditampilkan",
-                "total" => count($datas),
+                "total" => $count,
                 "limit" => $limit,
                 "data" => $datas
             ];

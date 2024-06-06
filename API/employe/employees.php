@@ -31,7 +31,7 @@ class Employees {
         return $this->created = sanitize($created);
     }
 
-    public function getEmployees($wheres = false, $wheresIn = false, $likes = false, $page = 0, $limit = 5){
+    public function getEmployees($type='fetch',$wheres = false, $wheresIn = false, $likes = false, $page = 0, $limit = 5){
         $offset = $page * $limit;
         $sql = "SELECT * FROM " . $this->table ;
         $data = array();
@@ -60,10 +60,12 @@ class Employees {
             $sql .= " WHERE " . implode(' AND ', $conditions);
         }
 
-        $sql .= " LIMIT " .$offset. ',' .$limit;
-
-        $result = $this->db->query($sql, $data)->getResultArray();
-
+        if($type == 'fetch'){
+            $sql .= " LIMIT " .$offset. ',' .$limit;
+            $result = $this->db->query($sql, $data)->getResultArray();
+        }else{
+            $result = $this->db->query($sql, $data)->rowCount();
+        }
         return $result;
     }
 

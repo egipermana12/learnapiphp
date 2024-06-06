@@ -14,7 +14,7 @@ class Database
 
     private function connect()
     {
-        global $database;
+        global $database; //referensi ke file database di config
         if($database['driver'] == 'PDO')
         {
             try{
