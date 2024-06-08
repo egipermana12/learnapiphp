@@ -83,43 +83,43 @@ class EmployeeView{
         }
     }
 
-    public function saveData(){
+    public function createData(){
         if(isset($_SERVER['REQUEST_METHOD']) == "POST"){
-            if($_POST){
-                $error = false;
-                //validasi
-                $this->validation->setRules('name', 'Name', 'trim|required');
-                $this->validation->setRules('email', 'Email', 'trim|required|unique[Employee]');
 
-                $valid = $this->validation->validate();
+            $input = json_decode(file_get_contents('php://input'), TRUE);
+            $error = false;
 
-                if(!$valid){
-                    $error = true;
-                    http_response_code(503);
+            $this->validation->setRules('name', 'Name', 'trim|required');
+            $this->validation->setRules('email', 'Email', 'trim|required|unique[Employee]');
+            $this->validation->setRules('designation', 'Designation', 'trim|required');
+
+            $valid = $this->validation->validate($input);
+
+            if(!$valid){
+                $error = true;
+                http_response_code(503);
+                $data = [
+                    "status" => "Error",
+                    "message" => $this->validation->getMessage()
+                ];
+                echo json_encode($data);
+            }else{
+                $db_data = [];
+                foreach ($input as $key => $value) {
+                    $setter = 'set' . ucfirst($key);
+                    $db_data[$key] = $this->employess->$setter($value);
+                }
+                $save = $this->employess->createData($db_data);
+
+                if($save){
+                    http_response_code(201);
                     $data = [
-                        "status" => "Error",
-                        "message" => $this->validation->getMessage()
+                        "message" => "Data berhasil ditambahkan"
                     ];
                     echo json_encode($data);
-                }
-                if(!$error){
-                    $db_data = [];
-                    foreach ($_POST as $key => $value) {
-                        $setter = 'set' . ucfirst($key);
-                        $db_data[$key] = $this->employess->$setter($value);
-                    }
-                    $save = $this->employess->createData($db_data);
-
-                    if($save){
-                        http_response_code(201);
-                        $data = [
-                            "message" => "Data berhasil ditambahkan"
-                        ];
-                        echo json_encode($data);
-                    }else{
-                        http_response_code(404);
-                        echo json_encode(array("message" => "Failed save data!"));
-                    }
+                }else{
+                    http_response_code(503);
+                    echo json_encode(array("message" => "Failed save data!"));
                 }
             }
         }else{
@@ -130,38 +130,54 @@ class EmployeeView{
 
     public function updateData($id){
         if($_SERVER['REQUEST_METHOD'] == "PUT"){
+
+            $input = json_decode(file_get_contents('php://input'), TRUE);
+            $error = false;
+
             $result = $this->employess->getSingleData($id);
 
             if(!$result){
                 http_response_code(404);
                 echo json_encode(array("message" => "No record found."));
-            }
+            }else{
 
-            $error = false;
+                $isunique = isUnique($input['email'],$result['email'],'Employee');
 
-            if(!$error){
-                $input = (array) json_decode(file_get_contents('php://input'), TRUE);
-                $db_data = [];
-                foreach ($input as $key => $value) {
-                    $setter = 'set' . ucfirst($key);
-                    $db_data[$key] = $this->employess->$setter($value);
-                }
-                $db_where['id'] = $id;
+                $this->validation->setRules('name', 'Name', 'trim|required');
+                $this->validation->setRules('email', 'Email', 'trim|'.$isunique);
+                $this->validation->setRules('designation', 'Designation', 'trim|required');
 
-                $save = $this->employess->updateData($db_data, $db_where);
+                $valid = $this->validation->validate($input);
+                if($valid){
+                    $db_data = [];
+                    foreach ($input as $key => $value) {
+                        $setter = 'set' . ucfirst($key);
+                        $db_data[$key] = $this->employess->$setter($value);
+                    }
+                    $db_where['id'] = $id;
 
-                if($save){
-                    http_response_code(200);
+                    $save = $this->employess->updateData($db_data, $db_where);
+
+                    if($save){
+                        http_response_code(200);
+                        $data = [
+                            "message" => "Data berhasil diupdate"
+                        ];
+                        echo json_encode($data);
+                    }else{
+                        http_response_code(503);
+                        echo json_encode(array("message" => "Failed update data!"));
+                    }
+                }else{
+                    $error = true;
+                    http_response_code(503);
                     $data = [
-                        "message" => "Data berhasil diupdate"
+                        "status" => "Error",
+                        "message" => $this->validation->getMessage()
                     ];
                     echo json_encode($data);
-                }else{
-                    http_response_code(404);
-                    echo json_encode(array("message" => "Failed update data!"));
                 }
             }
-
         }else{
             die();
         }
@@ -174,21 +190,22 @@ class EmployeeView{
             if(!$result){
                 http_response_code(404);
                 echo json_encode(array("message" => "No record found."));
-            }
-
-            $db_data['id'] = $$id;
-            $delete = $this->employess->deleteData($db_data);
-
-            if($delete){
-                http_response_code(200);
-                $data = [
-                    "message" => "Data berhasil dihapus"
-                ];
-                echo json_encode($data);
             }else{
-                http_response_code(404);
-                echo json_encode(array("message" => "Failed delete data!"));
+                $db_data['id'] = $id;
+                $delete = $this->employess->deleteData($db_data);
+
+                if($delete){
+                    http_response_code(200);
+                    $data = [
+                        "message" => "Data berhasil dihapus"
+                    ];
+                    echo json_encode($data);
+                }else{
+                    http_response_code(503);
+                    echo json_encode(array("message" => "Failed delete data!"));
+                }
             }
+
         }else{
             die();
         }
@@ -216,15 +233,23 @@ switch ($requestMethod) {
         break;
 
     case 'POST':
-        $EmployeeView->saveData();
+        $EmployeeView->createData();
         break;
 
     case 'PUT':
-        $EmployeeView->updateData($id);
+        if($id){
+            $EmployeeView->updateData($id);
+        }else{
+            $EmployeeView->notFound();
+        }
         break;
 
     case 'DELETE':
-        $EmployeeView->deleteData($id);
+        if($id){
+            $EmployeeView->deleteData($id);
+        }else{
+            $EmployeeView->notFound();
+        }
         break;
 
     default:

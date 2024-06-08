@@ -1,25 +1,24 @@
 <?php
 
-class FormValidation{
+class FormValidation {
     private $rules;
     private $messages = [];
 
-    public function setRules($input_field, $title, $rules, $func = null){
+    public function setRules($input_field, $title, $rules, $func = null) {
         $this->rules[$input_field] = array('field' => $input_field, 'title' => $title, 'rules' => $rules, 'func' => $func);
     }
 
-    public function validate(){
+    public function validate($input_data) {
         foreach ($this->rules as $field => $arr) {
             $field = trim($field);
             $list_rule = explode('|', $arr['rules']);
             $title = $arr['title'];
-            foreach($list_rule as $rule){
-                $input_value = trim(@$_POST[$field]);
-                $search = $field;
+            foreach($list_rule as $rule) {
+                $input_value = trim(@$input_data[$field]);
 
-                //if array
+                // if array
                 $is_array = false;
-                if(strpos($search, '[')){
+                if(strpos($field, '[') !== false) {
                     $is_array = true;
                     $exp = explode('[', $field);
                     $field = $exp[0];
@@ -28,7 +27,7 @@ class FormValidation{
                 if ($is_array) {
                     $exp_close = explode(']', $exp[1]);
                     $index = $exp_close[0];
-                    $input_value = $_POST[$field][$index];
+                    $input_value = $input_data[$field][$index];
                 }
 
                 if ($rule == 'trim') {
@@ -54,7 +53,6 @@ class FormValidation{
 
                 if ($rule == 'valid_email') {
                     if (filter_var($input_value, FILTER_VALIDATE_EMAIL) === false) {
-
                         $this->messages[$field] = $title . ' not valid';
                         break;
                     }
@@ -66,21 +64,20 @@ class FormValidation{
 
                     $check = true;
                     $field_old = '';
-                    if (!empty($_POST[$field . '_old'])) {
-                        $field_old = trim($_POST[$field . '_old']);
-                        if (strtolower($input_value) == trim(strtolower($_POST[$field . '_old'])) ) {
+                    if (!empty($input_data[$field . '_old'])) {
+                        $field_old = trim($input_data[$field . '_old']);
+                        if (strtolower($input_value) == trim(strtolower($input_data[$field . '_old'])) ) {
                             $check = false;
                         }
                     }
 
-                    if ($check)
-                    {
+                    if ($check) {
                         global $db;
                         if ($field_old) {
-                            $sql = 'SELECT ' . $field . ' FROM ' . $table . ' WHERE ' . $field . ' = ? AND ' . $field . ' != ? ' ;
+                            $sql = 'SELECT ' . $field . ' FROM ' . $table . ' WHERE ' . $field . ' = ? AND ' . $field . ' != ? ';
                             $result = $db->query($sql, [$input_value, $field_old])->getRowArray();
                         } else {
-                            $sql = 'SELECT ' . $field . ' FROM ' . $table . ' WHERE ' . $field . ' = ?' ;
+                            $sql = 'SELECT ' . $field . ' FROM ' . $table . ' WHERE ' . $field . ' = ?';
                             $result = $db->query($sql, $input_value)->getRowArray();
                         }
                         if ($result) {
@@ -90,10 +87,9 @@ class FormValidation{
                 }
 
                 if (strpos($rule, 'matches') !== false) {
-
                     preg_match("/matches\[(.*?)\]/", $rule, $match);
                     if ($match) {
-                        if ($input_value != $_POST[$match[1]]) {
+                        if ($input_value != $input_data[$match[1]]) {
                             $this->messages[$field] = $title . ' doesn\'t match with ' . $this->rules[$match[1]]['title'] . ' field';
                             break;
                         }
@@ -114,8 +110,9 @@ class FormValidation{
                 }
             }
         }
-        if ($this->messages)
+        if ($this->messages) {
             return false;
+        }
         return true;
     }
 
@@ -123,21 +120,18 @@ class FormValidation{
         return $this->messages;
     }
 
-    public function check_password($password, $field)
-    {
+    public function check_password($password, $field) {
         if (strlen($password) < 8) {
             $this->messages[$field] = 'The Password must constains at least 8 character';
             return false;
         }
 
         preg_match_all("/[a-z]/", $password, $match);
-
         if (!$match[0]) {
             $this->messages[$field] = 'The password must contains at least one small letter';
             return false;
         }
         preg_match_all("/[A-Z]/", $password, $match);
-
         if (!$match[0]) {
             $this->messages[$field] = 'The password must contains at least one capital letter';
             return false;
@@ -150,5 +144,4 @@ class FormValidation{
 
         return true;
     }
-
 }
