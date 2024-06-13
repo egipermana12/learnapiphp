@@ -34,6 +34,21 @@ switch($pg) {
         include('API/employe/index.php');
         break;
     }
+    case 'refbarang': {
+        $token->checkBearerToken();
+        include('API/refbarang/index.php');
+        break;
+    }
+    case 'refskpd': {
+        $token->checkBearerToken();
+        include('API/refskpd/index.php');
+        break;
+    }
+    case 'setting': {
+        $token->checkBearerToken();
+        include('API/setting/index.php');
+        break;
+    }
     case 'register': {
         include('API/users/index.php');
         break;

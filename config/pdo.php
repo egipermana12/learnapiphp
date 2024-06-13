@@ -95,7 +95,7 @@ class Database
         if($wheres){
             $str_wheres = [];
             foreach($wheres as $field => $val){
-                $str_wheres[] = $field . ' = ' . $val ;
+                $str_wheres[] = $field . ' = ? ' ;
             }
             $str_wheres = join(' AND ', $str_wheres);
         }
