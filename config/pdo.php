@@ -102,6 +102,26 @@ class Database
         return $str_wheres;
     }
 
+    public function wheresWithOperator($wheres = false){
+        if ($wheres) {
+            $str_wheres = [];
+            foreach ($wheres as $field => $val) {
+                // Memeriksa apakah $val mengandung operator
+                if (is_array($val) && count($val) === 2) {
+                    $operator = $val[0];
+                    $value = $val[1];
+                    $str_wheres[] = $field . ' ' . $operator . ' ?';
+                } else {
+                    // Default ke '=' jika operator tidak diberikan
+                    $str_wheres[] = $field . ' = ?';
+                    $value = $val;
+                }
+            }
+            $str_wheres = join(' AND ', $str_wheres);
+        }
+        return $str_wheres;
+    }
+
     function wheresIn($wheres = false){
         if($wheres && is_array($wheres)){
             $str_wherein = [];

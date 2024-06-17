@@ -21,6 +21,13 @@ class Setting
         return $query;
     }
 
+    public function getIdSetting($Id)
+    {
+        $sql = "SELECT Id,nilai FROM " .$this->table . " WHERE Id= :Id";
+        $query = $this->db->query($sql, array('Id' => $Id))->getRowArray();
+        return $query;
+    }
+
     public function getStatusAset()
     {
         $sql = "SELECT Id,nilai FROM " .$this->table . " WHERE Id= :Id";
