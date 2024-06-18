@@ -8,7 +8,7 @@ require('./API/setting/setting.php');
 class dataAwal
 {
     private $db;
-    private $table = 'data_awal_inventaris_47';
+    private $table = 'v1_data_awal_inventaris_47';
     private $table_skpd = 'ref_skpd';
     private $table_barang = 'ref_barang';
     private $setting;
@@ -72,15 +72,7 @@ class dataAwal
         $data = array();
         $conditions = array();
 
-        $query = "SELECT a.id as idbi,a.idawal as nibar,concat(a.c1,'.',a.c,'.',a.d,'.',a.e,'.',a.e1) as kd_skpd,b.nm_skpd as nm_skpd,concat(a.f1,'.',a.f2,'.',a.f,'.',a.g,'.',a.h,'.',a.i,'.',a.j) as kd_barang, c.nm_barang ,a.noreg,a.thn_perolehan,a.jml_barang,a.asal_usul,a.kondisi,a.staset,a.nilai_buku,a.tgl_buku_awal FROM " .$this->table . " as a LEFT JOIN " . $this->table_skpd . " as b ON a.c1 = b.c1 AND a.c = b.c AND a.d = b.d AND a.e = b.e AND a.e1 = b.e1 LEFT JOIN " .$this->table_barang. " as c ON a.f1 = c.f1 AND a.f2 = c.f2 AND a.f = c.f AND a.g = c.g AND a.h = c.h AND a.i = c.i AND a.j = c.j";
-
-        if(count($whereSetting) > 0){
-            $arrWhereSetting = $this->db->wheresWithOperator($whereSetting);
-            $conditions[] = $arrWhereSetting;
-            foreach ($whereSetting as $key => $value) {
-                $data[] = $value[1];
-            }
-        }
+        $query = "SELECT idbi,nibar,concat(c1,'.',c,'.',d,'.',e,'.',e1) as kd_skpd,nm_skpd,f1,f2,f,concat(f1,'.',f2,'.',f,'.',g,'.',h,'.',i,'.',j) as kd_barang,nm_barang,noreg,thn_perolehan,jml_barang,asal_usul,kondisi,staset,nilai_buku,tgl_buku_awal FROM " .$this->table ;
 
         if($wheresIn){
             $arrWhereIn = $this->db->wheresIn($wheresIn);
@@ -107,6 +99,198 @@ class dataAwal
             $result = $this->db->query($query, $data)->rowCount();
         }
         return $result;
+    }
+
+    private function mappingTableKib($f1, $f2, $f)
+    {
+        if($f1 == '1' && $f2 == '3' && $f == '1'){
+            return 'kib_a';
+        }else if($f1 == '1' && $f2 == '3' && $f == '2'){
+            return 'kib_b';
+        }else if($f1 == '1' && $f2 == '3' && $f == '3'){
+            return 'kib_c';
+        }else if($f1 == '1' && $f2 == '3' && $f == '4'){
+            return 'kib_d';
+        }else if($f1 == '1' && $f2 == '3' && $f == '5'){
+            return 'kib_e';
+        }else if($f1 == '1' && $f2 == '3' && $f == '6'){
+            return 'kib_f';
+        }else if($f1 == '1' && $f2 == '5' && $f == '3'){
+            return 'kib_g';
+        }
+        return;
+    }
+
+    private function getDetailsKib($table, $idbi)
+    {
+        switch ($table) {
+            case 'kib_a':
+                $query = "SELECT luas, alamat, alamat_kel, alamat_a, alamat_b, alamat_c, alamat_d, penggunaan, ket FROM " .$table . " WHERE idbi = :idbi";
+                $res = $this->db->query($query, array('idbi' => $idbi))->getRowArray();
+
+                $data = array();
+                $kota = $res['alamat_b'];
+                $kec = $res['alamat_c'];
+                $desa = $res['alamat_d'];
+
+                if(!empty($kota)){
+                    $kotamapp = getKota($kota);
+                    $data['kota'] = $kotamapp['nm_wilayah'];
+                }else{
+                     $data['kota'] = '';
+                }
+                if(!empty($kec)){
+                    $kotamapp = getKec($kota, $kec);
+                    $data['kecamatan'] = $kotamapp['nm_wilayah'];
+                }else{
+                    $data['kecamatan'] = '';
+                }
+                if(!empty($desa)){
+                    $kotamapp = getKel($kota, $kec, $desa);
+                    $data['desa'] = $kotamapp['nm_wilayah'];
+                }else{
+                    $data['desa'] = '';
+                }
+
+                return array_merge($res, $data);
+                break;
+            case 'kib_b':
+                $query = "SELECT merk,ukuran,bahan,no_pabrik,no_rangka,no_mesin,no_polisi,no_bpkb,ket FROM " .$table . " WHERE idbi = :idbi";
+                $res = $this->db->query($query, array('idbi' => $idbi))->getRowArray();
+                return $res;
+                break;
+            case 'kib_c':
+                $query = "SELECT luas_lantai,alamat,alamat_a,alamat_b,alamat_c,alamat_d,kota,alamat_kel,alamat_kec,luas,status_tanah,kode_tanah,ket FROM " .$table . " WHERE idbi = :idbi";
+                $res = $this->db->query($query, array('idbi' => $idbi))->getRowArray();
+
+                $data = array();
+                $kota = $res['alamat_b'];
+                $kec = $res['alamat_c'];
+                $desa = $res['alamat_d'];
+
+                if(!empty($kota)){
+                    $kotamapp = getKota($kota);
+                    $data['kota'] = $kotamapp['nm_wilayah'];
+                }else{
+                    $data['kota'] = '';
+                }
+                if(!empty($kec)){
+                    $kotamapp = getKec($kota, $kec);
+                    $data['kecamatan'] = $kotamapp['nm_wilayah'];
+                }else{
+                    $data['kecamatan'] = '';
+                }
+                if(!empty($desa)){
+                    $kotamapp = getKel($kota, $kec, $desa);
+                    $data['desa'] = $kotamapp['nm_wilayah'];
+                }else{
+                    $data['desa'] = '';
+                }
+
+                return array_merge($res, $data);
+                break;
+            case 'kib_d':
+                $query = "SELECT panjang,lebar,luas,alamat,alamat_a,alamat_b,alamat_c,alamat_d,kota,alamat_kel,alamat_kec,ket FROM " .$table . " WHERE idbi = :idbi";
+                $res = $this->db->query($query, array('idbi' => $idbi))->getRowArray();
+                $data = array();
+                $kota = $res['alamat_b'];
+                $kec = $res['alamat_c'];
+                $desa = $res['alamat_d'];
+
+                if(!empty($kota)){
+                    $kotamapp = getKota($kota);
+                    $data['kota'] = $kotamapp['nm_wilayah'];
+                }else{
+                    $data['kota'] = '';
+                }
+                if(!empty($kec)){
+                    $kotamapp = getKec($kota, $kec);
+                    $data['kecamatan'] = $kotamapp['nm_wilayah'];
+                }else{
+                    $data['kecamatan'] = '';
+                }
+                if(!empty($desa)){
+                    $kotamapp = getKel($kota, $kec, $desa);
+                    $data['desa'] = $kotamapp['nm_wilayah'];
+                }else{
+                    $data['desa'] = '';
+                }
+
+                return array_merge($res, $data);
+                break;
+            case 'kib_e':
+                $query = "SELECT buku_judul,buku_spesifikasi,seni_asal_daerah,seni_pencipta,seni_bahan,hewan_jenis,hewan_ukuran,ket FROM " .$table . " WHERE idbi = :idbi";
+                $res = $this->db->query($query, array('idbi' => $idbi))->getRowArray();
+                return $res;
+                break;
+            case 'kib_f':
+                $query = "SELECT luas,alamat,alamat_a,alamat_b,alamat_c,alamat_d,kota,alamat_kel,alamat_kec,ket FROM " .$table . " WHERE idbi = :idbi";
+                $res = $this->db->query($query, array('idbi' => $idbi))->getRowArray();
+                $data = array();
+                $kota = $res['alamat_b'];
+                $kec = $res['alamat_c'];
+                $desa = $res['alamat_d'];
+
+                if(!empty($kota)){
+                    $kotamapp = getKota($kota);
+                    $data['kota'] = $kotamapp['nm_wilayah'];
+                }else{
+                     $data['kota'] = '';
+                }
+                if(!empty($kec)){
+                    $kotamapp = getKec($kota, $kec);
+                    $data['kecamatan'] = $kotamapp['nm_wilayah'];
+                }else{
+                    $data['kecamatan'] = '';
+                }
+                if(!empty($desa)){
+                    $kotamapp = getKel($kota, $kec, $desa);
+                    $data['desa'] = $kotamapp['nm_wilayah'];
+                }else{
+                    $data['desa'] = '';
+                }
+
+                return array_merge($res, $data);
+                break;
+            case 'kib_g':
+                $query = "SELECT uraian,software_nama,kajian_nama,kerjasama_nama,ket FROM " .$table . " WHERE idbi = :idbi";
+                $res = $this->db->query($query, array('idbi' => $idbi))->getRowArray();
+                return $res;
+                break;
+            default:
+                // code...
+                break;
+        }
+    }
+
+    private function getKibNya($idbi, $f1, $f2, $f)
+    {
+        $table = $this->mappingTableKib($f1, $f2, $f);
+        if($table){
+            return $this->getDetailsKib($table, $idbi);
+        }
+        return null;
+    }
+
+    public function getKib($type,$wheres, $wheresIn, $likes, $page, $limit)
+    {
+        $result = $this->getAllData($type,$wheres, $wheresIn, $likes, $page, $limit);
+        $data = array();
+        foreach($result as $value){
+            $getDetailsKib = $this->getKibNya($value['idbi'],$value['f1'],$value['f2'],$value['f']);
+            if($getDetailsKib){
+                $getDetailsKib = array_map(function($item) {
+                    if (is_string($item)) {
+                        // Trim whitespace dan hapus \r dan \n
+                        $item = trim(preg_replace('/\s+/', ' ', $item));
+                    }
+                    return $item;
+                }, $getDetailsKib);
+                $value = array_merge($value, $getDetailsKib);
+            }
+            $data[] = $value;
+        }
+        return $data;
     }
 
 //batas

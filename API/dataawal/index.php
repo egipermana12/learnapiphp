@@ -25,17 +25,17 @@ class dataAwalView
 
         $staset = $this->datawal->getStatusAsset();
         if(!empty($staset)){
-            $where['a.staset'] = explode(",", $staset['nilai']);
+            $where['staset'] = explode(",", $staset['nilai']);
         }
 
         $whereF2 = $this->datawal->pecahF2();
         if(!empty($whereF2)){
-            $where['a.f2'] = $whereF2;
+            $where['f2'] = $whereF2;
         }
 
         $whereF = $this->datawal->pecahF();
         if(!empty($whereF)){
-            $where['a.f'] = $whereF;
+            $where['f'] = $whereF;
         }
 
         return $where;
@@ -45,7 +45,7 @@ class dataAwalView
     {
         $where = array();
 
-        $where['a.f1'] = '1';
+        $where['f1'] = '1';
 
         //untuk handle params
         $arrayParams = filter_input_array(INPUT_GET, FILTER_SANITIZE_STRING);
@@ -53,7 +53,7 @@ class dataAwalView
         $filteredParams = array_intersect_key($arrayParams, $allowedParams);
 
         if(isset($filteredParams['nibar'])){
-            $where['idawal'] = $filteredParams['nibar'];
+            $where['nibar'] = $filteredParams['nibar'];
         }
 
         return $where;
@@ -70,7 +70,7 @@ class dataAwalView
         $wheresIn = $this->wheresIn();
         $likes = array();
 
-        $datas = $this->datawal->getAllData('fetch',$wheres, $wheresIn, $likes, $offset, $limit);
+        $datas = $this->datawal->getKib('fetch',$wheres, $wheresIn, $likes, $offset, $limit);
         $count = $this->datawal->getAllData('count',$wheres, $wheresIn, $likes, $offset, $limit);
 
 
@@ -82,7 +82,7 @@ class dataAwalView
                 "limit" => $limit,
                 "data" => $datas
             ];
-            echo json_encode($data);
+            echo json_encode($data, JSON_UNESCAPED_SLASHES);
         }else{
             http_response_code(404);
             echo json_encode(array("message" => "No record found."));
