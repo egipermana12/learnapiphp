@@ -59,6 +59,22 @@ class dataAwalView
         return $where;
     }
 
+    private function getFilterLikes(){
+
+        $arrayParams = $_GET;
+        $arrayAcc = array("nm_barang" => "");
+        $res = array_intersect_key($arrayParams, $arrayAcc);
+
+        $likes = array();
+
+        if(count($res) > 0){
+            foreach($res as $key => $val){
+                $likes[$key] = $val;
+            }
+        }
+        return $likes;
+    }
+
     public function getAllBarang()
     {
         $offset = isset($_GET['offset']) ? sanitize($_GET['offset']) : 0;
@@ -68,7 +84,7 @@ class dataAwalView
 
         $wheres = $this->wheres();
         $wheresIn = $this->wheresIn();
-        $likes = array();
+        $likes = $this->getFilterLikes();
 
         $datas = $this->datawal->getKib('fetch',$wheres, $wheresIn, $likes, $offset, $limit);
         $count = $this->datawal->getAllData('count',$wheres, $wheresIn, $likes, $offset, $limit);

@@ -66,6 +66,11 @@ switch($pg) {
         include('API/dataawal/index.php');
         break;
     }
+    case 'inventaris47': {
+        $token->checkBearerToken();
+        include('API/inventaris_47/index.php');
+        break;
+    }
     case 'refbarang': {
         $token->checkBearerToken();
         include('API/refbarang/index.php');
