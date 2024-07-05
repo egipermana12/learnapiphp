@@ -132,12 +132,9 @@ class dataAwal
         return null;
     }
 
-    public function getKib($type,$wheres, $wheresIn, $likes, $page, $limit)
+    private function generatorKib($result) //coba pake generator agar efisensi memori
     {
-        $result = $this->getAllData($type,$wheres, $wheresIn, $likes, $page, $limit);
-        $data = array();
         foreach($result as $value){
-
             $getDetailsKib = $this->getKibNya($value['idbi'],$value['f1'],$value['f2'],$value['f']);
             $getStatusSensus = $this->getStatusSensus($value['idbi'], $this->getTahunSensus());
             $stSensus = !empty($getStatusSensus) ? 'SUDAH': 'BELUM' ;
@@ -153,6 +150,20 @@ class dataAwal
                 $join = array_merge($getDetailsKib, array('status_sensus' => $stSensus));
                 $value = array_merge($value, $join);
             }
+            yield $value; //ini generator yang sudah bisa digunakan di php
+        }
+    }
+
+    private function runGeneratorKib($type,$wheres, $wheresIn, $likes, $page, $limit)
+    {
+        $result = $this->getAllData($type,$wheres, $wheresIn, $likes, $page, $limit);
+        return $this->generatorKib($result);
+    }
+
+    public function getKib($type,$wheres, $wheresIn, $likes, $page, $limit)
+    {
+        $data = array();
+        foreach($this->runGeneratorKib($type,$wheres, $wheresIn, $likes, $page, $limit) as $value){
             $data[] = $value;
         }
         return $data;

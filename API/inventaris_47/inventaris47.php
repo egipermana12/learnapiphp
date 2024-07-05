@@ -40,55 +40,92 @@ class inventaris47
         }
     }
 
-    private function dataInventaris()
+    private function mappingRincianInventaris($data = array())
     {
-        $data = array(
-            "keberadan_barang" => "ADA", //ADA,TIDAK ADA
-            "kode_barang" => "1.3.1.01.01.01.001",
-            "kode_barang_status" => "Sesuai", //Sesuai,Tidak Sesuai
-            "kode_barang_sensus" => "",
-            "nama_barang" => "Tanah sekolah pendidikan",
-            "nama_barang_status" => "Sesuai", //Sesuai,Tidak Sesuai
-            "nama_barang_sensus" => "",
-            "noreg" => "00001",
-            "noreg_status" => "Sesuai", //Sesuai,Tidak Sesuai
-            "noreg_sensus" => "",
-            "kondisi_barang" => 1,
-            "kondisi_barang_sensus" => 1, //1,2,3
-            "tercatat_ganda_status" => "TIDAK", //YA, TIDAK
-            "id_tercatat_ganda" => "",
-            "kode_register_ganda" => "",
-            "kode_barang_ganda" => "",
-            "nama_barang_ganda" => "",
-            "spesifikasi_nama_barang_ganda" => "",
-            "jumlah_barang_ganda" => "",
-            "satuan_barang_ganda" => "",
-            "nilai_perolehan_ganda" => "",
-            "tanggal_perolehan_ganda" => "",
-            "pengguna_barang_ganda" =>"",
-            "nilai_perolehan_atribusi_status" => "TIDAK", //YA, TIDAK
-            "atribusi_data_awal" => "", //YA, TIDAK
-            "id_nibar_atribusi" => "",
-            "kode_barang_atribusi" => "",
-            "kode_lokasi_atribusi" => "",
-            "kode_register_atribusi" => "",
-            "nama_barang_atribusi" => "",
-            "spesifikasi_nama_barang_atribusi" => ""
-        );
-        return $data;
+        $f1 = $data["f1"];
+        $f2 = $data["f2"];
+        $f = $data["f"];
+        $res = array("f" => $f1);
+
+        //global
+        $res["IdInventaris"] = $data["Id"] ? $data["Id"] : "";
+        $res["keberadaan_barang_sensus"] = $data["keberadaan_barang_sensus"] ? $data["keberadaan_barang_sensus"] : "ADA";
+        $res["noreg_status"] = $data["noreg_status"] ? $data["noreg_status"] : "Sesuai";
+        $res["noreg_sensus"] = $data["noreg_sensus"] ? $data["noreg_sensus"] : "";
+        $res["kode_barang_status"] = $data["kode_barang_status"] ? $data["kode_barang_status"] : "Sesuai";
+        $res["f1_sensus"] = $data["f1_sensus"] ? $data["f1_sensus"] : "";
+        $res["f2_sensus"] = $data["f2_sensus"] ? $data["f2_sensus"] : "";
+        $res["f_sensus"] = $data["f_sensus"] ? $data["f_sensus"] : "";
+        $res["g_sensus"] = $data["g_sensus"] ? $data["g_sensus"] : "";
+        $res["h_sensus"] = $data["h_sensus"] ? $data["h_sensus"] : "";
+        $res["i_sensus"] = $data["i_sensus"] ? $data["i_sensus"] : "";
+        $res["j_sensus"] = $data["j_sensus"] ? $data["j_sensus"] : "";
+
+        //kib b
+        if($f1 == "1" && $f2 =="3" && $f == "2"){
+            $res["merk_tipe_status"] = $data["merk_tipe_status"] ? $data["merk_tipe_status"] : "Sesuai";
+            $res["merk_tipe_sensus"] = $data["merk_tipe_sensus"] ? $data["merk_tipe_sensus"] : "";
+            $res["nomor_polisi_status"] = $data["nomor_polisi_status"] ? $data["nomor_polisi_status"] : "Sesuai";
+            $res["nomor_polisi_sensus"] = $data["nomor_polisi_sensus"] ? $data["nomor_polisi_sensus"] : "";
+            $res["nomor_rangka_status"] = $data["nomor_rangka_status"] ? $data["nomor_rangka_status"] : "Sesuai";
+            $res["nomor_rangka_sensus"] = $data["nomor_rangka_sensus"] ? $data["nomor_rangka_sensus"] : "";
+            $res["nomor_bpkb_status"] = $data["nomor_bpkb_status"] ? $data["nomor_bpkb_status"] : "Sesuai";
+            $res["nomor_bpkb_sensus"] = $data["nomor_bpkb_sensus"] ? $data["nomor_bpkb_sensus"] : "";
+        }
+
+        //kib a,c,d,f
+        if($f1 == "1" && $f2 =="3" && ($f == "1" || $f == "3" || $f == "4" || $f == "6") ){
+            $res["alamat_status"] = $data["alamat_status"] ? $data["alamat_status"] : "Sesuai";
+            $res["alamat_sensus"] = $data["alamat_sensus"] ? $data["alamat_sensus"] : "";
+            $res["kampung_komplek_sensus"] = $data["kampung_komplek_sensus"] ? $data["kampung_komplek_sensus"] : "";
+            $res["kelurahan_sensus"] = $data["kelurahan_sensus"] ? $data["kelurahan_sensus"] : "";
+            $res["kode_kelurahan_sensus"] = $data["kode_kelurahan_sensus"] ? $data["kode_kelurahan_sensus"] : "";
+            $res["kecamatan_sensus"] = $data["kecamatan_sensus"] ? $data["kecamatan_sensus"] : "";
+            $res["kota_sensus"] = $data["kota_sensus"] ? $data["kota_sensus"] : "";
+            $res["status_pemilik_tanah"] = $data["status_pemilik_tanah"] ? $data["status_pemilik_tanah"] : "";
+            $res["nama_pemilik_tanah"] = $data["nama_pemilik_tanah"] ? $data["nama_pemilik_tanah"] : "";
+            $res["tanah_nibar"] = $data["tanah_nibar"] ? $data["tanah_nibar"] : "";
+            $res["alasan_perubahan_luas"] = $data["alasan_perubahan_luas"] ? $data["alasan_perubahan_luas"] : "";
+        }
+
+        // kib d
+        if($f1 == "1" && $f2 =="3" && $f == "4"){
+            $res["jenis_perkerasan_status"] = $data["jenis_perkerasan_status"] ? $data["jenis_perkerasan_status"] : "Sesuai";
+            $res["jenis_perkerasan_sensus"] = $data["jenis_perkerasan_sensus"] ? $data["jenis_perkerasan_sensus"] : "";
+            $res["jenis_bahan_struktur_status"] = $data["jenis_bahan_struktur_status"] ? $data["jenis_bahan_struktur_status"] : "Sesuai";
+            $res["jenis_bahan_struktur_sensus"] = $data["jenis_bahan_struktur_sensus"] ? $data["jenis_bahan_struktur_sensus"] : "";
+            $res["nomor_ruas_jalan_status"] = $data["nomor_ruas_jalan_status"] ? $data["nomor_ruas_jalan_status"] : "Sesuai";
+            $res["nomor_ruas_jalan_sensus"] = $data["nomor_ruas_jalan_sensus"] ? $data["nomor_ruas_jalan_sensus"] : "";
+            $res["nomor_jaringan_irigasi_status"] = $data["nomor_jaringan_irigasi_status"] ? $data["nomor_jaringan_irigasi_status"] : "Sesuai";
+            $res["nomor_jaringan_irigasi_sensus"] = $data["nomor_jaringan_irigasi_sensus"] ? $data["nomor_jaringan_irigasi_sensus"] : "";
+        }
+
+
+        return $res;
+    }
+
+    private function dataInventaris($nibar)
+    {
+        $query = "SELECT * FROM " . $this->table . " WHERE nibar = :nibar";
+        $kondisi = "SELECT kondisi FROM " .$this->table_dtawal. " WHERE nibar = :nibar";
+        $sqlKondisi = $this->db->query($kondisi, array("nibar" => $nibar))->getRowArray();
+        $sqlInventaris = $this->db->query($query, array("nibar" => $nibar))->getRowArray();
+
+        $rincianInventaris = $this->mappingRincianInventaris($sqlInventaris);
+        return $rincianInventaris;
     }
 
     public function newInventaris($nibar)
     {
         $cariDataAwal = $this->cariDataAwal($nibar);
-        $dtInventaris = $this->dataInventaris();
+        $dtInventaris = $this->dataInventaris($nibar);
         if($cariDataAwal){
             $res = array_merge($cariDataAwal, $dtInventaris);
-            $data = array(
-                "nibar" => $res["nibar"],
-                "idbi" => $res["idbi"]
-            );
-            return $data;
+            // $data = array(
+            //     "nibar" => $res["nibar"],
+            //     "idbi" => $res["idbi"]
+            // );
+            return $res;
         }else{
             return false;
         }
