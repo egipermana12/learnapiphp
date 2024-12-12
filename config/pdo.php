@@ -143,61 +143,163 @@ class Database
 
     public function insert($table, $data)
     {
-        $column = join(',', array_keys($data));
-        foreach ($data as $v) {
-            $q[] = '?';
-        }
-        $value_mask = join(',', $q);
-
-        $sql = 'INSERT INTO ' . $table . '(' . $column . ') VALUES (' . $value_mask . ')';
-        $this->query($sql, array_values($data));
-        return $this->trans_status;
-    }
-
-    public function update($table, $data, $where = false){
-        foreach($data as $field => $val){
-            $set[] = $field . ' = ? ';
-        }
-        if($where){
-            if(is_array($where)){
-                $str_where = [];
-                foreach($where as $field => $val){
-                    $str_where[] = $field . ' = ? ';
-                }
-                $str_where = join(' AND ', $str_where);
-                $data = array_merge(array_values($data), array_values($where));
-            }else{
-                $str_where = $where;
+        try {
+            // Validasi input
+            if (empty($table) || empty($data) || !is_array($data)) {
+                throw new InvalidArgumentException('Invalid table name or data.');
             }
+    
+            // Persiapan kolom dan placeholder
+            $columns = implode(',', array_keys($data));
+            $placeholders = implode(',', array_fill(0, count($data), '?'));
+    
+            // Query SQL
+            $sql = "INSERT INTO {$table} ({$columns}) VALUES ({$placeholders})";
+    
+            // Prepare statement
+            $stmt = $this->pdo->prepare($sql);
+    
+            // Eksekusi statement
+            $stmt->execute(array_values($data));
+    
+            // Kembalikan ID terakhir yang dimasukkan (jika ada auto-increment)
+            return $this->pdo->lastInsertId();
+        } catch (PDOException $e) {
+            // Tangani error PDO
+            error_log($e->getMessage());
+            return false;
+        } catch (Exception $e) {
+            // Tangani error umum
+            error_log($e->getMessage());
+            return false;
         }
-        $add_where = $where ? ' WHERE ' . $str_where : '';
-        $sql = 'UPDATE ' . $table . ' SET ' . join(',', $set) . $add_where;
-
-        $this->query($sql, array_values($data));
-        return $this->trans_status;
     }
 
-    public function delete($table, $where = false){
-        $data_where = [];
-
-        $str_where = '';
-        if($where){
-            if(is_array($where)){
-                $arr_where = [];
-                foreach($where as $field => $val){
-                    $arr_where[] = $field . ' = ? ';
-                }
-                $str_where = join(' AND ', $arr_where);
-                $data_where = array_values($where);
-            }else{
-                $str_where = $where;
+    public function bulkInsert($table, $dataSet)
+    {
+        try {
+            if (empty($table) || empty($dataSet) || !is_array($dataSet)) {
+                throw new InvalidArgumentException('Invalid table name or data set.');
             }
+    
+            // Persiapkan query
+            $columns = implode(',', array_keys($dataSet[0]));
+            $placeholders = implode(',', array_fill(0, count($dataSet[0]), '?'));
+            $sql = "INSERT INTO {$table} ({$columns}) VALUES ({$placeholders})";
+            $stmt = $this->pdo->prepare($sql);
+    
+            // Eksekusi untuk setiap data
+            foreach ($dataSet as $data) {
+                $stmt->execute(array_values($data));
+            }
+    
+            return true;
+        } catch (PDOException $e) {
+            error_log($e->getMessage());
+            return false;
         }
-        $sql_where = $str_where ? ' WHERE ' . $str_where : '';
-
-        $sql = 'DELETE FROM ' . $table . $sql_where;
-        $this->query($sql, $data_where);
-        return $this->trans_status;
     }
+
+    public function update($table, $data, $where = [])
+    {
+        try {
+            // Validasi input
+            if (empty($table) || empty($data) || !is_array($data)) {
+                throw new InvalidArgumentException('Invalid table name or data.');
+            }
+    
+            // Mempersiapkan kolom untuk diupdate
+            $set = [];
+            foreach ($data as $field => $val) {
+                $set[] = "{$field} = ?";
+            }
+            $setQuery = implode(', ', $set);
+    
+            // Mempersiapkan kondisi WHERE jika diberikan
+            $whereQuery = '';
+            $params = array_values($data);
+    
+            if (!empty($where)) {
+                if (is_array($where)) {
+                    $conditions = [];
+                    foreach ($where as $field => $val) {
+                        $conditions[] = "{$field} = ?";
+                        $params[] = $val;
+                    }
+                    $whereQuery = ' WHERE ' . implode(' AND ', $conditions);
+                } else {
+                    throw new InvalidArgumentException('Invalid WHERE clause format. Must be an array.');
+                }
+            }
+    
+            // Query SQL
+            $sql = "UPDATE {$table} SET {$setQuery}{$whereQuery}";
+    
+            // Prepare statement
+            $stmt = $this->pdo->prepare($sql);
+    
+            // Eksekusi statement
+            $stmt->execute($params);
+    
+            // Mengembalikan jumlah baris yang diupdate
+            return $stmt->rowCount();
+        } catch (PDOException $e) {
+            // Tangani error PDO
+            error_log($e->getMessage());
+            return false;
+        } catch (Exception $e) {
+            // Tangani error umum
+            error_log($e->getMessage());
+            return false;
+        }
+    }
+
+    public function delete($table, $where = [])
+    {
+        try {
+            // Validasi input
+            if (empty($table)) {
+                throw new InvalidArgumentException('Table name cannot be empty.');
+            }
+    
+            // Siapkan kondisi WHERE jika diberikan
+            $whereQuery = '';
+            $params = [];
+    
+            if (!empty($where)) {
+                if (is_array($where)) {
+                    $conditions = [];
+                    foreach ($where as $field => $val) {
+                        $conditions[] = "{$field} = ?";
+                        $params[] = $val;
+                    }
+                    $whereQuery = ' WHERE ' . implode(' AND ', $conditions);
+                } else {
+                    throw new InvalidArgumentException('Invalid WHERE clause format. Must be an array.');
+                }
+            }
+    
+            // Query SQL
+            $sql = "DELETE FROM {$table}{$whereQuery}";
+    
+            // Prepare statement
+            $stmt = $this->pdo->prepare($sql);
+    
+            // Eksekusi statement
+            $stmt->execute($params);
+    
+            // Mengembalikan jumlah baris yang dihapus
+            return $stmt->rowCount();
+        } catch (PDOException $e) {
+            // Tangani error PDO
+            error_log($e->getMessage());
+            return false;
+        } catch (Exception $e) {
+            // Tangani error umum
+            error_log($e->getMessage());
+            return false;
+        }
+    }
+
 
 }
